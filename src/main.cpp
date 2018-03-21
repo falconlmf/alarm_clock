@@ -97,6 +97,43 @@ void setup() {
 
 }
 
+#define MATRIX_LOGO_X   0
+#define MATRIX_LOGO_Y   0
+#define MATRIX_LOGO_W   8
+#define MATRIX_LOGO_H   8
+#define TIME_CUR_X  10
+#define TIME_CUR_Y  1
+
+typedef struct{
+    uint8_t x;
+    uint8_t y;
+    uint8_t w;
+    uint8_t h;
+} M_GRAPHIC;
+
+const M_GRAPHIC m_logo = {MATRIX_LOGO_X, MATRIX_LOGO_Y, MATRIX_LOGO_W, MATRIX_LOGO_H};
+const M_GRAPHIC m_time = {TIME_CUR_X, TIME_CUR_Y, 0, 0};
+
+void matrix_update_logo(void)
+{
+    matrix.fillScreen(0);    
+    matrix.setCursor(m_logo.x, m_logo.y);
+    matrix.setTextColor(c_red);
+    matrix.print(char(129));
+    
+    matrix.setCursor(m_logo.x, m_logo.y);
+    matrix.setTextColor(c_grey);
+    matrix.print(char(128));
+}
+
+void matrix_update_time(void)
+{
+    matrix.fillScreen(0);    
+    matrix.setCursor(m_time.x, m_time.y);
+    matrix.setTextColor(c_grey);
+    matrix.print(timeStr.substring(0, 5));
+}
+
 void loop() {
 
     static int i;
@@ -118,22 +155,7 @@ void loop() {
             return;
         }
         timeStr = NTP.getTimeStr();
-
-
-        matrix.fillScreen(0);    
-        matrix.setCursor(0, 0);
-        matrix.setTextColor(c_red);
-        matrix.print(char(129));
-        
-        matrix.setCursor(0, 0);
-        matrix.setTextColor(c_grey);
-        matrix.print(char(128));
-        
-        matrix.setCursor(8+2, 1);
-        matrix.setTextColor(c_grey);
-        matrix.print(timeStr.substring(0, 5));
-
-        matrix.show();
+        matrix_update_time();
     }
 
     if ((millis () - mil_NTP) > 5100) {
@@ -150,4 +172,6 @@ void loop() {
         i++;
 
     }
+    
+    matrix.show();
 }
