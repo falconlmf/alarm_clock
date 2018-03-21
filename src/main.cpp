@@ -8,6 +8,7 @@
 #include <ESP8266WiFi.h>
 #include <NtpClientLib.h>
 #include <TimeLib.h>
+#include "alarm.h"
 #include "c.h"
 
 char ssid[] = "TCAP";
@@ -26,6 +27,8 @@ int8_t timeZone = 8;
 int8_t minutesTimeZone = 0;
 bool ntpFirstGet = false;
 bool wifiFirstConnected = false;
+
+void New_time_handler(void);
 
 void onSTAConnected (WiFiEventStationModeConnected ipInfo) {
     Serial.printf ("Connected to %s\r\n", ipInfo.ssid.c_str ());
@@ -51,12 +54,18 @@ void processSyncEvent (NTPSyncEvent_t ntpEvent) {
         else if (ntpEvent == invalidAddress)
             Serial.println ("Invalid NTP server address");
     } else {
-        ntpFirstGet = true;
+        if (ntpFirstGet == false) {
+            ntpFirstGet = true;
+            timeStr = NTP.getTimeStr().substring(0, 5);
+            Alarm_set(timeStr.substring(0, 4) + String(timeStr.substring(4, 5).toInt() + 1));
+            New_time_handler();
+        }
         Serial.print ("Got NTP time: ");
         Serial.print (NTP.getTimeDateString (NTP.getLastNTPSync ()));    
         Serial.print (" Uptime: ");
         Serial.print (NTP.getUptimeString ()); Serial.print (" since ");
         Serial.println (NTP.getTimeDateString (NTP.getFirstSync ()).c_str ());
+
     }
 }
 
@@ -116,7 +125,6 @@ const M_GRAPHIC m_time = {TIME_CUR_X, TIME_CUR_Y, 0, 0};
 
 void matrix_update_logo(void)
 {
-    matrix.fillScreen(0);    
     matrix.setCursor(m_logo.x, m_logo.y);
     matrix.setTextColor(c_red);
     matrix.print(char(129));
@@ -128,16 +136,35 @@ void matrix_update_logo(void)
 
 void matrix_update_time(void)
 {
-    matrix.fillScreen(0);    
     matrix.setCursor(m_time.x, m_time.y);
     matrix.setTextColor(c_grey);
-    matrix.print(timeStr.substring(0, 5));
+    matrix.print(timeStr);
+}
+
+void New_time_handler(void)
+{
+    static int i;
+    Serial.print (i++); Serial.print (" ");
+    Serial.print (NTP.getTimeStr ()); Serial.print (" "); Serial.print (NTP.getDateStr ()); Serial.print (" ");
+    Serial.print (NTP.isSummerTime () ? "Summer Time. " : "Winter Time. ");
+    Serial.print ("WiFi is ");
+    Serial.print (WiFi.isConnected () ? "connected" : "not connected"); Serial.print (". ");
+    Serial.print ("Uptime: ");
+    Serial.print (NTP.getUptimeString ()); Serial.print (" since ");
+    Serial.println (NTP.getTimeDateString (NTP.getFirstSync ()).c_str ());
+
+    timeStr = NTP.getTimeStr().substring(0, 5);
+
+    if (Alarm_en() && (timeStr == Alarm_time())) {
+        Alarm_handler();
+    }
+    matrix.fillScreen(0);
+    matrix_update_time();
+    matrix_update_logo();
+    matrix.show();
 }
 
 void loop() {
-
-    static int i;
-    static int mil_NTP;
 
     if (wifiFirstConnected) {
         wifiFirstConnected = false;
@@ -150,28 +177,7 @@ void loop() {
         syncEventTriggered = false;
     }
 
-    if (NTP.getTimeStr() != timeStr) {
-        if (ntpFirstGet == false) {
-            return;
-        }
-        timeStr = NTP.getTimeStr();
-        matrix_update_time();
+    if (NTP.getTimeStr().substring(0, 5) != timeStr) {
+        New_time_handler();
     }
-
-    if ((millis () - mil_NTP) > 5100) {
-        mil_NTP = millis ();
-        Serial.print (i); Serial.print (" ");
-        Serial.print (NTP.getTimeStr ()); Serial.print (" "); Serial.print (NTP.getDateStr ()); Serial.print (" ");
-        Serial.print (NTP.isSummerTime () ? "Summer Time. " : "Winter Time. ");
-        Serial.print ("WiFi is ");
-        Serial.print (WiFi.isConnected () ? "connected" : "not connected"); Serial.print (". ");
-        Serial.print ("Uptime: ");
-        Serial.print (NTP.getUptimeString ()); Serial.print (" since ");
-        Serial.println (NTP.getTimeDateString (NTP.getFirstSync ()).c_str ());
-
-        i++;
-
-    }
-    
-    matrix.show();
 }
