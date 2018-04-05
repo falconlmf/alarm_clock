@@ -51,7 +51,7 @@ void Alarm_handler(void)
 {
     switch(alarm_stage) {
         case ALARM_INIT:
-            ticker_alarm_timeout.attach(300, setRing);
+            ticker_alarm_timeout.attach(30, setRing);
             alarm_stage = ALARM_RING;
             Serial.println("ALARM_INIT");
             Serial.println("ALARM_RING");

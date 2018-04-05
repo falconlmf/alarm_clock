@@ -1,32 +1,35 @@
 // Adafruit_NeoMatrix example for single NeoPixel Shield.
 // Scrolls 'Howdy' across the matrix in a portrait (vertical) orientation.
 
+#include "global.h"
 #include <Arduino.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_NeoMatrix.h>
-#include <Adafruit_NeoPixel.h>
+#include <Ticker.h>
 #include <ESP8266WiFi.h>
 #include <NtpClientLib.h>
 #include <TimeLib.h>
+#include <Wire.h>
+#include <SparkFunHTU21D.h>
+#include <OneButton.h>
+#include "display.h"
+#include "button.h"
 #include "alarm.h"
-#include "c.h"
+#include "time.h"
 
 char ssid[] = "TCAP";
 char pass[] = "pp00000000000";
 const char* ntpServerName = "stdtime.gov.hk";
 byte packetBuffer[48]; // NTP time stamp is in the first 48 bytes of the message
-String timeStr = "";
+int8_t timeZone;
+int8_t minutesTimeZone;
+bool ntpFirstGet;
+bool wifiFirstConnected;
 
-Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(32, 8, D4,
-    NEO_MATRIX_TOP     + NEO_MATRIX_LEFT +
-    NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG,
-    NEO_GRB            + NEO_KHZ800);
+OneButton button(D3, true);
 
+TwoWire myWire;
+HTU21D myHumidity;
+Ticker ticker_display;
 
-int8_t timeZone = 8;
-int8_t minutesTimeZone = 0;
-bool ntpFirstGet = false;
-bool wifiFirstConnected = false;
 
 void New_time_handler(void);
 
@@ -56,9 +59,9 @@ void processSyncEvent (NTPSyncEvent_t ntpEvent) {
     } else {
         if (ntpFirstGet == false) {
             ntpFirstGet = true;
-            timeStr = NTP.getTimeStr().substring(0, 5);
-            Alarm_set(timeStr.substring(0, 4) + String(timeStr.substring(4, 5).toInt() + 1));
+            NTP.setDayLight(false);
             New_time_handler();
+            Alarm_set(getTime().substring(0, 4) + String(getTime().substring(4, 5).toInt() + 1));
         }
         Serial.print ("Got NTP time: ");
         Serial.print (NTP.getTimeDateString (NTP.getLastNTPSync ()));    
@@ -72,23 +75,62 @@ void processSyncEvent (NTPSyncEvent_t ntpEvent) {
 boolean syncEventTriggered = false; // True if a time even has been triggered
 NTPSyncEvent_t ntpEvent; // Last triggered event
 
-const uint16_t c_white = matrix.Color(100, 100,100);
-const uint16_t c_grey = matrix.Color(60, 40, 50);
-const uint16_t c_red = matrix.Color(30, 0, 0);
+void New_time_handler(void)
+{
+    static int i;
+
+    // float humd = myHumidity.readHumidity();
+    // float temp = myHumidity.readTemperature();
+    // Serial.print("Time:");
+    // Serial.print(millis());
+    // Serial.print(" Temperature:");
+    // Serial.print(temp, 1);
+    // Serial.print("C");
+    // Serial.print(" Humidity:");
+    // Serial.print(humd, 1);
+    // Serial.print("%");
+
+    // Serial.println();
+
+    Serial.print (i++); Serial.print (" ");
+    Serial.print (NTP.getTimeStr ()); Serial.print (" "); Serial.print (NTP.getDateStr ()); Serial.print (" ");
+    Serial.print ("WiFi is ");
+    Serial.print (WiFi.isConnected () ? "connected" : "not connected"); Serial.print (". ");
+    Serial.print ("Uptime: ");
+    Serial.print (NTP.getUptimeString ()); Serial.print (" since ");
+    Serial.println (NTP.getTimeDateString (NTP.getFirstSync ()).c_str ());
+
+    setTime(NTP.getTimeStr().substring(0, 5));
+    
+    displayReset();
+    displayAddObj(0, 0, c_grey, String(char(128)));
+    displayAddObj(0, 0, c_red, String(char(129)));
+    displayAddObj(10, 1, c_grey, getTime());
+
+    if (Alarm_en() && getTime() == Alarm_time()) {
+        Alarm_handler();
+    }
+}
 
 void setup() {
-    matrix.begin();
-    matrix.setTextWrap(false);
-    matrix.setBrightness(100);
-    matrix.setFont(&c);
-    matrix.fillScreen(0);    
+    ntpFirstGet = false;
+    timeZone = 8;
+    minutesTimeZone = 0;
+    ntpFirstGet = false;
+    wifiFirstConnected = false;
+    delay(400);
 
-    matrix.setCursor(10, 01);   
-    matrix.setTextColor(c_grey);     
-    matrix.print("99:99");
-    matrix.show();
+    ticker_display.attach_ms(20, displayUpdate);
 
-    static WiFiEventHandler e1, e2, e3;
+    button.setDebounceTicks(20);
+    button.setClickTicks(300);
+    button.attachClick(ButtonClick);
+    button.attachDoubleClick(ButtonDoubleClick);
+
+    myWire.begin(D2, D1);
+    myHumidity.begin(myWire);
+
+    displayInit();
 
     Serial.begin (230400);
     Serial.println ();
@@ -100,71 +142,15 @@ void setup() {
         syncEventTriggered = true;
     });
 
+    static WiFiEventHandler e1, e2, e3;
     e1 = WiFi.onStationModeGotIP (onSTAGotIP);// As soon WiFi is connected, start NTP Client
     e2 = WiFi.onStationModeDisconnected (onSTADisconnected);
     e3 = WiFi.onStationModeConnected (onSTAConnected);
-
-}
-
-#define MATRIX_LOGO_X   0
-#define MATRIX_LOGO_Y   0
-#define MATRIX_LOGO_W   8
-#define MATRIX_LOGO_H   8
-#define TIME_CUR_X  10
-#define TIME_CUR_Y  1
-
-typedef struct{
-    uint8_t x;
-    uint8_t y;
-    uint8_t w;
-    uint8_t h;
-} M_GRAPHIC;
-
-const M_GRAPHIC m_logo = {MATRIX_LOGO_X, MATRIX_LOGO_Y, MATRIX_LOGO_W, MATRIX_LOGO_H};
-const M_GRAPHIC m_time = {TIME_CUR_X, TIME_CUR_Y, 0, 0};
-
-void matrix_update_logo(void)
-{
-    matrix.setCursor(m_logo.x, m_logo.y);
-    matrix.setTextColor(c_red);
-    matrix.print(char(129));
-    
-    matrix.setCursor(m_logo.x, m_logo.y);
-    matrix.setTextColor(c_grey);
-    matrix.print(char(128));
-}
-
-void matrix_update_time(void)
-{
-    matrix.setCursor(m_time.x, m_time.y);
-    matrix.setTextColor(c_grey);
-    matrix.print(timeStr);
-}
-
-void New_time_handler(void)
-{
-    static int i;
-    Serial.print (i++); Serial.print (" ");
-    Serial.print (NTP.getTimeStr ()); Serial.print (" "); Serial.print (NTP.getDateStr ()); Serial.print (" ");
-    Serial.print (NTP.isSummerTime () ? "Summer Time. " : "Winter Time. ");
-    Serial.print ("WiFi is ");
-    Serial.print (WiFi.isConnected () ? "connected" : "not connected"); Serial.print (". ");
-    Serial.print ("Uptime: ");
-    Serial.print (NTP.getUptimeString ()); Serial.print (" since ");
-    Serial.println (NTP.getTimeDateString (NTP.getFirstSync ()).c_str ());
-
-    timeStr = NTP.getTimeStr().substring(0, 5);
-
-    if (Alarm_en() && (timeStr == Alarm_time())) {
-        Alarm_handler();
-    }
-    matrix.fillScreen(0);
-    matrix_update_time();
-    matrix_update_logo();
-    matrix.show();
 }
 
 void loop() {
+
+    button.tick();
 
     if (wifiFirstConnected) {
         wifiFirstConnected = false;
@@ -177,7 +163,7 @@ void loop() {
         syncEventTriggered = false;
     }
 
-    if (NTP.getTimeStr().substring(0, 5) != timeStr) {
+    if (NTP.getTimeStr().substring(0, 5) != getTime()) {
         New_time_handler();
     }
 }
