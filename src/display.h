@@ -4,6 +4,7 @@
 extern const uint16_t c_white;
 extern const uint16_t c_grey;
 extern const uint16_t c_red;
+extern Ticker ticker_display;
 
 void displayInit(void);
 void displayReset(void);

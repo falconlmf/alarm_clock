@@ -27,6 +27,8 @@ static TYPE_LOGO logo_to_print;
 static TYPE_LOGO obj_to_print[5];
 static uint8_t objCnt;
 
+Ticker ticker_display;
+
 static void matrix_update_time(String _t);
 static void matrix_update_logo(uint8_t _logo);
 
@@ -41,6 +43,8 @@ void displayInit(void)
     matrix.setTextColor(c_grey);     
     matrix.print("12:34");
     matrix.show();
+
+	ticker_display.attach_ms(20, displayUpdate);
 }
 
 static void matrix_update_logo(uint8_t _logo)

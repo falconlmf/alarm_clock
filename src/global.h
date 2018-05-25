@@ -14,4 +14,7 @@ typedef struct {
     uint8_t x; uint8_t y; uint16_t c; String str;
 } TYPE_LOGO;
 
+NTPSyncEvent_t ntpEvent; // Last triggered event
+
+
 #endif
