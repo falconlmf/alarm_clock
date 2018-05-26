@@ -1,8 +1,9 @@
 #include <Arduino.h>
+#include <OneButton.h>
 #include "button.h"
 
-OneButton button(D3, true);
 BUTTON_STATUS buttonEvent = BUTTON_IDLE;
+OneButton button(D3, true);
 
 void ButtonInit(void)
 {
