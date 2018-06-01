@@ -2,6 +2,66 @@
 
 volatile menus menuSelect;
 
+void menuChange(void)
+{
+    switch (menuSelect) {
+        case MENU_MAIN:
+            displayReset();
+            displayAddObj(0, 0, c_grey, String(char(128)));
+            displayAddObj(0, 0, c_red, String(char(129)));
+            displayAddObj(10, 1, c_grey, getTime());
+            break;
+        case MENU_ALARM;
+            displayReset();
+            if (!getAlarm()) {
+                displayAddObj(10, 1, c_grey, "OFF");
+            } else {
+                displayAddObj(10, 1, c_grey, getAlarm());
+            }
+            break;
+        case MENU_2;
+            displayReset();
+            displayAddObj(10, 1, c_grey, '2');
+            break;
+        case MENU_3;
+            displayReset();
+            displayAddObj(10, 1, c_grey, '3');
+            break;
+        default:
+            break;
+    }
+}
+
+void menuUpdate(void)
+{
+    switch (menuSelect) {
+        case MENU_MAIN:
+            displayReset();
+            displayAddObj(0, 0, c_grey, String(char(128)));
+            displayAddObj(0, 0, c_red, String(char(129)));
+            displayAddObj(10, 1, c_grey, getTime());
+            break;
+        case MENU_ALARM;
+            displayReset();
+            if (!getAlarm()) {
+                displayAddObj(10, 1, c_grey, "OFF");
+            } else {
+                displayAddObj(10, 1, c_grey, getAlarm());
+            }
+            break;
+        case MENU_2;
+            displayReset();
+            displayAddObj(10, 1, c_grey, '2');
+            break;
+        case MENU_3;
+            displayReset();
+            displayAddObj(10, 1, c_grey, '3');
+            break;
+        default:
+            break;
+    }
+}
+
 void menu(void)
 {
     switch (ButtonEventGet()) {
@@ -21,31 +81,9 @@ void menu(void)
             break;
     }
 
-    if (!menuChange) {
-        return;
-    }
-
-    switch (menuSelect) {
-        case MENU_MAIN:
-            displayReset();
-            displayAddObj(0, 0, c_grey, String(char(128)));
-            displayAddObj(0, 0, c_red, String(char(129)));
-            displayAddObj(10, 1, c_grey, getTime());
-            break;
-        case MENU_ALARM;
-            displayReset();
-            displayAddObj(10, 1, c_grey, getAlarm());
-            break;
-        case MENU_2;
-            displayReset();
-            displayAddObj(10, 1, c_grey, '2');
-            break;
-        case MENU_3;
-            displayReset();
-            displayAddObj(10, 1, c_grey, '3');
-            break;
-        default:
-            break;
-    }
-    menuSelect = false;
+    if (menuChange) {
+        menuChange();
+        menuChange = false;
+    } else {
+        menuUpdate();
 }

@@ -10,8 +10,10 @@ typedef enum menus {
     MENU_LAST,
 };
 
-extern volatile menus menuSelect;
+static void menuChange(void);
+static void menuUpdate(void);
 
-void menu(void);
+extern volatile menus menuSelect;
+extern void menu(void);
 
 #endif

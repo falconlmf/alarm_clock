@@ -70,7 +70,7 @@ void displayReset(void)
     objCnt = 0;
 }
 
-void displayAddObj(uint8_t x, uint8_t y, uint16_t c, String str)
+void displayAddObj(uint8_t id, uint8_t x, uint8_t y, uint16_t c, String str)
 {
     obj_to_print[objCnt].x = x;
     obj_to_print[objCnt].y = y;
