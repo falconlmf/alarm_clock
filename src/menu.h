@@ -1,7 +1,9 @@
 #ifndef MENU_H_
 #define MENU_H_
 
-typedef enum menus {
+#include "global.h"
+
+enum {
     MENU_FIRST = 0,
     MENU_MAIN = 0,
     MENU_ALARM,

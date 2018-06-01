@@ -1,16 +1,16 @@
 #ifndef ALARM_H_
 #define ALARM_H_
 
-#include <Arduino.h>
+#include "global.h"
 
-struct TimeData {
-    char ssid[20];
-    char password[20];
-    char ntpServer[20];
+struct ClockData {
     int8_t zone;
     int8_t minutesZone;
     bool ntpOK;
     bool wifiOK;
+    String ssid;
+    String password;
+    String ntpServer;
     String str;
 };
 
@@ -27,15 +27,18 @@ struct AlarmData {
 };
 
 
-extern timeData time;
-extern AlarmData alarm;
+extern struct ClockData clock;
+extern struct AlarmData alarm;
 
-void TimeInit(void);
+void ClockInit(void);
 void AlarmInit(void);
+String getTime(void);
+void setTime(String str);
 String getAlarm(void);
 void setAlarm(String t);
 void Tone(uint8_t _pin, unsigned int frequency, unsigned long duration);
-void Alarm_handler(void);
 void New_time_handler(void);
+void Alarm_handler(void);
+void Clock_handler(void);
 
 #endif

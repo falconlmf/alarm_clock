@@ -1,6 +1,10 @@
 #include "menu.h"
+#include "clock.h"
+#include "display.h"
+#include "button.h"
 
-volatile menus menuSelect;
+uint8_t menuSelect;
+uint8_t menuChange;
 
 void menuChange(void)
 {
@@ -29,6 +33,8 @@ void menuChange(void)
             break;
         default:
             break;
+        default:
+            break;
     }
 }
 
@@ -41,7 +47,7 @@ void menuUpdate(void)
             displayAddObj(0, 0, c_red, String(char(129)));
             displayAddObj(10, 1, c_grey, getTime());
             break;
-        case MENU_ALARM;
+        case MENU_ALARM:
             displayReset();
             if (!getAlarm()) {
                 displayAddObj(10, 1, c_grey, "OFF");
@@ -49,13 +55,13 @@ void menuUpdate(void)
                 displayAddObj(10, 1, c_grey, getAlarm());
             }
             break;
-        case MENU_2;
+        case MENU_2:
             displayReset();
-            displayAddObj(10, 1, c_grey, '2');
+            displayAddObj(10, 1, c_grey, "2");
             break;
-        case MENU_3;
+        case MENU_3:
             displayReset();
-            displayAddObj(10, 1, c_grey, '3');
+            displayAddObj(10, 1, c_grey, "3");
             break;
         default:
             break;

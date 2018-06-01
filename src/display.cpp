@@ -1,6 +1,5 @@
 #include "global.h"
 #include "display.h"
-#include "time.h"
 #include "c.h"
 
 #define MATRIX_LOGO_X   0
