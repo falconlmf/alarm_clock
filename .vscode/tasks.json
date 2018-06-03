@@ -20,6 +20,13 @@
             "problemMatcher": [
                 "$platformio"
             ]
+        },
+        {
+            "type": "PlatformIO",
+            "task": "Upload and Monitor",
+            "problemMatcher": [
+                "$platformio"
+            ]
         }
     ]
 }

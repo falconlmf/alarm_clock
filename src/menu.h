@@ -5,17 +5,13 @@
 
 enum {
     MENU_FIRST = 0,
-    MENU_MAIN = 0,
+    MENU_MAIN = MENU_FIRST,
     MENU_ALARM,
     MENU_2,
     MENU_3,
-    MENU_LAST,
+    MENU_LAST = MENU_3
 };
 
-static void menuChange(void);
-static void menuUpdate(void);
-
-extern volatile menus menuSelect;
 extern void menu(void);
 
 #endif

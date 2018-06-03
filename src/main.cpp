@@ -38,5 +38,5 @@ void loop()
 		NTP.setInterval(63);
 	}
     Clock_handler();
-	menu_handler();
+	menu();
 }

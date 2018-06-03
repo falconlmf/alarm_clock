@@ -28,40 +28,19 @@ static uint8_t objCnt;
 
 Ticker ticker_display;
 
-static void matrix_update_time(String _t);
-static void matrix_update_logo(uint8_t _logo);
-
 void displayInit(void)
 {
     matrix.begin();
     matrix.setTextWrap(false);
-    matrix.setBrightness(80);
+    matrix.setBrightness(100);
     matrix.setFont(&c);
     matrix.fillScreen(0);    
     matrix.setCursor(10, 1);   
-    matrix.setTextColor(c_grey);     
+    matrix.setTextColor(c_white);     
     matrix.print("12:34");
     matrix.show();
 
 	ticker_display.attach_ms(20, displayUpdate);
-}
-
-static void matrix_update_logo(uint8_t _logo)
-{
-    matrix.setCursor(m_logo.x, m_logo.y);
-    matrix.setTextColor(c_red);
-    matrix.print(char(_logo));
-    
-    // matrix.setCursor(m_logo.x, m_logo.y);
-    // matrix.setTextColor(c_grey);
-    // matrix.print(char(128));
-}
-
-static void matrix_update_time(String _t)
-{
-    matrix.setCursor(m_time.x + m_scroll.x, m_time.y + m_scroll.y);
-    matrix.setTextColor(c_grey);
-    matrix.print(_t);
 }
 
 void displayReset(void)
@@ -69,7 +48,7 @@ void displayReset(void)
     objCnt = 0;
 }
 
-void displayAddObj(uint8_t id, uint8_t x, uint8_t y, uint16_t c, String str)
+void displayAddObj(uint8_t x, uint8_t y, uint16_t c, String str)
 {
     obj_to_print[objCnt].x = x;
     obj_to_print[objCnt].y = y;
