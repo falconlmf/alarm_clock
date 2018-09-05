@@ -7,12 +7,12 @@
 #include "clock.h"
 #include "display.h"
 #include <Arduino.h>
-#include <SparkFunHTU21D.h>
+// #include <SparkFunHTU21D.h>
 #include <Wire.h>
 
 
 TwoWire myWire;
-HTU21D myHumidity;
+// HTU21D myHumidity;
 
 void setup()
 {
